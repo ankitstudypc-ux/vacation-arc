@@ -1,0 +1,877 @@
+cat > /home/claude/study_planner.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Planner — JEE 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0c0a;--bg2:#161512;--bg3:#1e1d19;--bg4:#252420;
+  --border:#2a2924;--border2:#38372f;
+  --text:#e6e0d4;--text2:#9a9284;--text3:#5e5c52;
+  --gold:#c8922a;--gold2:#e8b84a;--gold3:#f5d07a;
+  --phy:#4e8fcb;--phy2:#2d6aa0;--phybg:#0e1e31;
+  --che:#cc5555;--che2:#a33e3e;--chebg:#2b1212;
+  --mat:#4da87a;--mat2:#347a58;--matbg:#0d251a;
+  --pw:#8b7fd4;--pwbg:#1a1730;
+  --rest:#4a4840;--restbg:#1a1912;
+  --school:#6a685e;--schoolbg:#151411;
+  --warn:#d4924a;--warnbg:#261a0e;
+  --now:#e8b84a;
+  --radius:10px;--radius2:6px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
+.layout{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:200px;min-width:200px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;overflow:hidden;transition:width .3s}
+.sidebar.collapsed{width:56px;min-width:56px}
+.brand{padding:20px 16px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.brand-icon{width:32px;height:32px;background:var(--gold);border-radius:var(--radius2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.brand-text{overflow:hidden;white-space:nowrap}
+.brand-name{font-family:'Playfair Display',serif;font-size:14px;color:var(--text);font-weight:600;line-height:1.2}
+.brand-sub{font-size:10px;color:var(--text2)}
+.nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius2);cursor:pointer;transition:background .15s;white-space:nowrap;overflow:hidden;border:none;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg4);color:var(--gold);border:1px solid var(--border2)}
+.nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.nav-label{overflow:hidden;transition:opacity .2s}
+.sidebar.collapsed .nav-label{opacity:0;width:0}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border)}
+.collapse-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius2);cursor:pointer;color:var(--text3);font-size:12px;border:none;background:transparent;width:100%;font-family:'DM Sans',sans-serif}
+.collapse-btn:hover{color:var(--text2)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:24px 28px;min-height:100vh;animation:fadein .2s ease}
+.page.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-header{margin-bottom:20px}
+.page-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--text);font-weight:600;margin-bottom:3px}
+.page-sub{font-size:12px;color:var(--text2)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.card-sm{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.card-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);font-weight:500;margin-bottom:8px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+
+/* CLOCK + DASHBOARD */
+.dashboard-top{display:grid;grid-template-columns:1fr 1.6fr;gap:16px;margin-bottom:16px}
+.clock-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;justify-content:space-between}
+.clock-display{font-family:'DM Mono',monospace;font-size:46px;font-weight:500;color:var(--text);letter-spacing:-1px;line-height:1}
+.clock-seconds{font-size:28px;color:var(--text2)}
+.clock-date{font-size:12px;color:var(--text2);margin-top:8px}
+.day-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:500;margin-top:6px}
+.now-card{border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:140px}
+.now-card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;opacity:.08;background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.1) 20px,rgba(255,255,255,.1) 21px)}
+.now-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;opacity:.7;font-weight:500}
+.now-time{font-family:'DM Mono',monospace;font-size:12px;opacity:.8;margin-top:2px}
+.now-subject{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;margin:8px 0 4px;line-height:1.2}
+.now-desc{font-size:12px;opacity:.8;line-height:1.5}
+.now-next{font-size:11px;opacity:.6;margin-top:10px}
+.progress-ring{position:absolute;top:16px;right:16px;width:48px;height:48px}
+
+/* MINI TIMELINE */
+.mini-timeline{margin-top:12px}
+.mt-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.mt-row:last-child{border-bottom:none}
+.mt-row.current{background:var(--bg3);margin:0 -18px;padding:7px 18px;border-radius:4px;border-color:transparent}
+.mt-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);width:78px;flex-shrink:0}
+.mt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mt-name{font-size:12px;color:var(--text);flex:1}
+.mt-note{font-size:10px;color:var(--text2);text-align:right}
+.mt-now-badge{font-size:9px;background:var(--gold);color:#000;padding:1px 6px;border-radius:10px;font-weight:500;flex-shrink:0}
+
+/* STAT CARDS */
+.stat-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:600;color:var(--text);line-height:1}
+.stat-unit{font-size:11px;color:var(--text2);margin-top:2px}
+.stat-detail{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5}
+
+/* SUBJECT COLORS */
+.c-phy{color:var(--phy)}.bg-phy{background:var(--phybg);border-color:var(--phy2)}.dot-phy{background:var(--phy)}
+.c-che{color:var(--che)}.bg-che{background:var(--chebg);border-color:var(--che2)}.dot-che{background:var(--che)}
+.c-mat{color:var(--mat)}.bg-mat{background:var(--matbg);border-color:var(--mat2)}.dot-mat{background:var(--mat)}
+.c-pw{color:var(--pw)}.bg-pw{background:var(--pwbg)}.dot-pw{background:var(--pw)}
+.c-rest{color:#888}.dot-rest{background:var(--rest)}
+.c-gold{color:var(--gold)}
+
+/* SCHEDULE PAGE - FULL TIMELINE */
+.day-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.day-tab{padding:7px 14px;border-radius:var(--radius2);font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif}
+.day-tab:hover{border-color:var(--border2);color:var(--text)}
+.day-tab.active{background:var(--bg4);border-color:var(--gold);color:var(--gold)}
+.day-tab.today-tab{border-color:var(--border2)}
+.today-marker{font-size:9px;background:var(--gold);color:#000;padding:1px 4px;border-radius:4px;margin-left:4px;font-weight:500}
+
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-block{display:flex;align-items:stretch;border-bottom:1px solid var(--border)}
+.tl-block:last-child{border-bottom:none}
+.tl-block.tl-current{background:var(--bg3)}
+.tl-time-col{width:90px;flex-shrink:0;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;background:var(--bg2)}
+.tl-time-col.current-time-col{color:var(--gold)}
+.tl-accent{width:4px;flex-shrink:0}
+.tl-body{flex:1;padding:10px 14px}
+.tl-name{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:6px}
+.tl-desc{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5}
+.tl-badge{font-size:9px;padding:2px 6px;border-radius:10px;font-weight:500;background:var(--bg4);color:var(--text2)}
+.tl-badge.deep{background:rgba(200,146,42,.15);color:var(--gold)}
+.tl-badge.medium{background:rgba(78,143,203,.1);color:var(--phy)}
+.tl-badge.light{background:rgba(77,168,122,.1);color:var(--mat)}
+.tl-badge.now-b{background:var(--gold);color:#000}
+.tl-duration{font-size:10px;color:var(--text3);margin-top:4px}
+.timeline-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+
+/* TOPICS PAGE */
+.subject-section{margin-bottom:20px}
+.subject-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.subject-icon{width:36px;height:36px;border-radius:var(--radius2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.subject-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600}
+.subject-progress-bar{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-left:auto;max-width:160px}
+.subject-progress-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.subject-count{font-size:11px;color:var(--text2);min-width:40px;text-align:right}
+.topics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.topic-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:10px 12px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;transition:border-color .15s}
+.topic-card:hover{border-color:var(--border2)}
+.topic-card.done{opacity:.5}
+.topic-card.done .tc-name{text-decoration:line-through}
+.tc-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;cursor:pointer}
+.tc-check.checked{border-color:var(--gold);background:var(--gold)}
+.tc-check.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.tc-body{flex:1}
+.tc-name{font-size:12px;color:var(--text);line-height:1.4}
+.tc-tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:500;margin-top:4px}
+.tag-must{background:rgba(200,146,42,.2);color:var(--gold)}
+.tag-strong{background:rgba(77,168,122,.15);color:var(--mat)}
+.tag-bonus{background:rgba(154,146,132,.1);color:var(--text2)}
+
+/* HOURS PAGE */
+.hours-bar-row{margin-bottom:14px}
+.hbr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.hbr-label{font-size:12px;color:var(--text);font-weight:500}
+.hbr-val{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace}
+.hbr-track{height:10px;background:var(--bg4);border-radius:5px;overflow:hidden}
+.hbr-fill{height:100%;border-radius:5px;transition:width .6s ease}
+.hbr-sub{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* RULES PAGE */
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rule-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.rule-num{font-family:'Playfair Display',serif;font-size:36px;color:var(--border2);font-weight:700;line-height:1;margin-bottom:6px}
+.rule-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px}
+.rule-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.rule-list li{font-size:11px;color:var(--text2);padding-left:12px;position:relative;line-height:1.5}
+.rule-list li::before{content:'–';position:absolute;left:0;color:var(--text3)}
+.rule-list .hl{color:var(--text);font-weight:500}
+
+/* PW STRATEGY */
+.pw-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pw-time-label{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;width:96px;flex-shrink:0}
+.pw-bar{padding:6px 12px;border-radius:var(--radius2);font-size:11px;font-weight:500;flex:1}
+
+/* WEEKLY */
+.weekly-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.wday-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.wday-card.today-wday{border-color:var(--gold)}
+.wday-header{padding:8px 10px;font-size:11px;font-weight:500;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.wday-today-dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.wday-body{padding:8px 10px}
+.wday-block{font-size:10px;padding:3px 6px;border-radius:3px;margin-bottom:4px;line-height:1.3}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .dashboard-top{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr 1fr}
+  .weekly-grid{grid-template-columns:repeat(4,1fr)}
+  .topics-grid{grid-template-columns:1fr}
+  .rules-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-icon">📚</div>
+    <div class="brand-text">
+      <div class="brand-name">Study Vault</div>
+      <div class="brand-sub">JEE 2026</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">⌂</span><span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-item" onclick="showPage('schedule')">
+      <span class="nav-icon">◷</span><span class="nav-label">Today's Schedule</span>
+    </button>
+    <button class="nav-item" onclick="showPage('weekly')">
+      <span class="nav-icon">▦</span><span class="nav-label">Weekly View</span>
+    </button>
+    <button class="nav-item" onclick="showPage('topics')">
+      <span class="nav-icon">✓</span><span class="nav-label">Topics Tracker</span>
+    </button>
+    <button class="nav-item" onclick="showPage('hours')">
+      <span class="nav-icon">◴</span><span class="nav-label">Hours &amp; Progress</span>
+    </button>
+    <button class="nav-item" onclick="showPage('pw')">
+      <span class="nav-icon">⚡</span><span class="nav-label">PW Strategy</span>
+    </button>
+    <button class="nav-item" onclick="showPage('rules')">
+      <span class="nav-icon">⊞</span><span class="nav-label">Rules &amp; System</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="collapse-btn" onclick="toggleSidebar()">
+      <span class="nav-icon" id="collapse-icon">◁</span>
+      <span class="nav-label">Collapse</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub" id="dash-date-sub">Loading...</div>
+  </div>
+  <div class="dashboard-top">
+    <div class="clock-card">
+      <div>
+        <div class="card-title">Current Time</div>
+        <div class="clock-display">
+          <span id="clock-h">00</span><span style="opacity:.4">:</span><span id="clock-m">00</span><span class="clock-seconds"><span style="opacity:.3">:</span><span id="clock-s">00</span></span>
+        </div>
+        <div class="clock-date" id="clock-date"></div>
+      </div>
+      <div id="day-badge-wrap" style="margin-top:12px"></div>
+    </div>
+    <div class="now-card" id="now-card">
+      <div>
+        <div class="now-label" id="now-label">NOW</div>
+        <div class="now-time" id="now-time-range"></div>
+        <div class="now-subject" id="now-subject">Loading...</div>
+        <div class="now-desc" id="now-desc"></div>
+      </div>
+      <div class="now-next" id="now-next"></div>
+    </div>
+  </div>
+  <div class="g4" style="margin-bottom:16px" id="dash-stats"></div>
+  <div class="card">
+    <div class="card-title" id="mini-tl-title">Today's Schedule</div>
+    <div class="mini-timeline" id="mini-timeline"></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="page" id="page-schedule">
+  <div class="page-header">
+    <div class="page-title">Full Daily Schedule</div>
+    <div class="page-sub">Complete time-blocked timetable for each day type</div>
+  </div>
+  <div class="day-tabs" id="day-tabs">
+    <button class="day-tab" onclick="showDaySchedule('tuition')" id="tab-tuition">Mon / Wed / Fri<span class="today-marker" id="today-m-tuition" style="display:none">TODAY</span></button>
+    <button class="day-tab" onclick="showDaySchedule('free')" id="tab-free">Tue / Thu<span class="today-marker" id="today-m-free" style="display:none">TODAY</span></button>
+    <button class="day-tab" onclick="showDaySchedule('sat')" id="tab-sat">Saturday<span class="today-marker" id="today-m-sat" style="display:none">TODAY</span></button>
+    <button class="day-tab" onclick="showDaySchedule('sun')" id="tab-sun">Sunday<span class="today-marker" id="today-m-sun" style="display:none">TODAY</span></button>
+  </div>
+  <div class="timeline-wrap"><div class="timeline" id="schedule-timeline"></div></div>
+</div>
+
+<!-- WEEKLY -->
+<div class="page" id="page-weekly">
+  <div class="page-header">
+    <div class="page-title">Weekly Overview</div>
+    <div class="page-sub">Subject rotation and focus areas across the week</div>
+  </div>
+  <div class="weekly-grid" id="weekly-grid"></div>
+</div>
+
+<!-- TOPICS -->
+<div class="page" id="page-topics">
+  <div class="page-header">
+    <div class="page-title">Topics Tracker</div>
+    <div class="page-sub">Check off chapters as you complete them — progress saves automatically</div>
+  </div>
+  <div id="topics-content"></div>
+</div>
+
+<!-- HOURS -->
+<div class="page" id="page-hours">
+  <div class="page-header">
+    <div class="page-title">Hours &amp; Progress</div>
+    <div class="page-sub">52-day study breakdown — realistic estimates</div>
+  </div>
+  <div class="g4" style="margin-bottom:20px">
+    <div class="card-sm"><div class="card-title">Self-Study Total</div><div class="stat-num">287</div><div class="stat-unit">hours over 52 days</div></div>
+    <div class="card-sm"><div class="card-title">PW Classes</div><div class="stat-num">174</div><div class="stat-unit">live + recorded</div></div>
+    <div class="card-sm"><div class="card-title">Maths Tuition</div><div class="stat-num">35</div><div class="stat-unit">offline coaching hrs</div></div>
+    <div class="card-sm"><div class="card-title">Total Academic</div><div class="stat-num">496</div><div class="stat-unit">hrs out of 1,248 total</div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Self-study by subject (287 hrs)</div>
+    <div style="margin-top:8px">
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label c-phy">⬤ Physics — HCV</span><span class="hbr-val">~105 hrs · 37%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:37%;background:var(--phy)"></div></div>
+        <div class="hbr-sub">2 hrs every morning, all non-Sunday days. Highest JEE weightage = highest allocation.</div>
+      </div>
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label c-mat">⬤ Maths — RD Sharma + Tuition</span><span class="hbr-val">~112 hrs · 39%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:39%;background:var(--mat)"></div></div>
+        <div class="hbr-sub">77 hrs self-study (morning blocks + Saturday) + 35 hrs offline tuition = 112 hrs total.</div>
+      </div>
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label c-che">⬤ Chemistry — NCERT + PW</span><span class="hbr-val">~70 hrs · 24%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:24%;background:var(--che)"></div></div>
+        <div class="hbr-sub">Afternoon slots (tuition days) + morning (free days) + evening inorganic. 33% JEE weight — fully covered.</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">How your 52 days break down (1,248 total hours)</div>
+    <div style="margin-top:8px">
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label">Self-study</span><span class="hbr-val">287 hrs · 23%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:23%;background:var(--pw)"></div></div>
+      </div>
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label">PW Classes (live + recorded)</span><span class="hbr-val">174 hrs · 14%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:14%;background:var(--phy)"></div></div>
+      </div>
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label">Online School</span><span class="hbr-val">104 hrs · 8%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:8%;background:var(--school)"></div></div>
+      </div>
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label">Maths Tuition (offline)</span><span class="hbr-val">35 hrs · 3%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:3%;background:var(--mat)"></div></div>
+      </div>
+      <div class="hours-bar-row">
+        <div class="hbr-header"><span class="hbr-label">Sleep, meals, rest, travel, personal</span><span class="hbr-val">~648 hrs · 52%</span></div>
+        <div class="hbr-track"><div class="hbr-fill" style="width:52%;background:var(--bg4)"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PW STRATEGY -->
+<div class="page" id="page-pw">
+  <div class="page-header">
+    <div class="page-title">PW Clash Strategy</div>
+    <div class="page-sub">Mon / Wed / Fri: PW (4–8 PM) clashes with offline tuition (6:30–8 PM) — here is the exact fix</div>
+  </div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-title">Tuition day PW split (Mon / Wed / Fri)</div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:7px">
+        <div class="pw-bar-row"><div class="pw-time-label">4:00 – 6:15 PM</div><div class="pw-bar bg-pw" style="color:var(--pw)">PW Live — 2 hrs 15 min</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">6:15 – 6:30 PM</div><div class="pw-bar" style="background:var(--bg4);color:var(--text2)">Travel to offline tuition</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">6:30 – 8:00 PM</div><div class="pw-bar" style="background:var(--chebg);border:1px solid var(--che2);color:var(--che)">Math Tuition (offline)</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">8:00 – 9:00 PM</div><div class="pw-bar" style="background:var(--warnbg);color:var(--warn)">PW Recorded — 1 hr (same night — mandatory)</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">9:00 – 9:45 PM</div><div class="pw-bar bg-mat" style="color:var(--mat)">TPP + Tuition HW</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">10:00 PM</div><div class="pw-bar" style="background:var(--bg4);color:var(--text2)">Dinner (fixed)</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Non-tuition day PW (Tue / Thu / Sat)</div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:7px">
+        <div class="pw-bar-row"><div class="pw-time-label">4:00 – 8:00 PM</div><div class="pw-bar bg-pw" style="color:var(--pw)">PW Live — full 4 hours</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">8:00 – 9:15 PM</div><div class="pw-bar bg-mat" style="color:var(--mat)">TPP + Theory revision</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">9:15 – 9:50 PM</div><div class="pw-bar bg-che" style="color:var(--che)">Inorganic chemistry (light)</div></div>
+        <div class="pw-bar-row"><div class="pw-time-label">10:00 PM</div><div class="pw-bar" style="background:var(--bg4);color:var(--text2)">Dinner (fixed)</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">The 24-hour recorded lecture law</div>
+      <ul class="rule-list" style="margin-top:8px">
+        <li><span class="hl">Same-night rule:</span> Watch missed 1 hr 45 min after tuition — every tuition day, no exceptions</li>
+        <li><span class="hl">If exhausted:</span> Hard stop at 9 PM, sleep, watch it first thing next morning (9–10:45 AM) before HCV block</li>
+        <li><span class="hl">Never defer beyond 24 hours</span> — 2-day deferral starts a spiral that doubles by week 4</li>
+        <li><span class="hl">Speed rule:</span> Explanations = 1.5x. Derivations and worked problems = 1x only</li>
+        <li><span class="hl">Log physically:</span> Write subject + duration of any pending lecture in notebook the moment you miss it</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Live vs recorded decision guide</div>
+      <ul class="rule-list" style="margin-top:8px">
+        <li>Tue / Thu / Sat: always attend PW live — zero reason to skip</li>
+        <li>If sick for a day: watch recorded within 48 hours on a double-day catch-up</li>
+        <li>Sunday: catch up remaining recorded lectures in the 5–7 PM backlog slot only</li>
+        <li>Sunday is NOT for clearing last week's lectures — that must happen by Saturday</li>
+        <li>If you miss more than 2 PW lectures in one week — Saturday morning becomes recovery mode</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="page" id="page-rules">
+  <div class="page-header">
+    <div class="page-title">Rules &amp; System</div>
+    <div class="page-sub">The 8 principles that keep this plan alive for 52 days</div>
+  </div>
+  <div class="rules-grid">
+    <div class="rule-card"><div class="rule-num">01</div><div class="rule-title">The 9:15 AM block is sacred</div><ul class="rule-list"><li>Morning Physics block is your highest-leverage time — fresh brain, zero interruptions</li><li>No phone, no social media, no "just 5 minutes" before it starts</li><li>Every other block can flex. This one never does.</li><li>A distracted morning cannot be recovered in the evening</li></ul></div>
+    <div class="rule-card"><div class="rule-num">02</div><div class="rule-title">Rest 1–3 PM is infrastructure, not a reward</div><ul class="rule-list"><li>Never shorten it to "study more" — it directly harms evening output</li><li>A proper 20–40 min nap restores ~70% of afternoon alertness</li><li>The 3 PM chemistry block only works if you actually rested</li><li>Skipping rest to gain 2 hrs costs 4 hrs of quality later that week</li></ul></div>
+    <div class="rule-card"><div class="rule-num">03</div><div class="rule-title">Chemistry gets full respect — 33% of JEE</div><ul class="rule-list"><li>Placed in afternoon because it suits post-nap focus levels perfectly</li><li>Inorganic (coordination, p-block) = excellent evening work — high memory return</li><li>Organic reactions must be revised every 3 days or they will not stick</li><li>Do not sacrifice chemistry to do extra maths — that is a trap</li></ul></div>
+    <div class="rule-card"><div class="rule-num">04</div><div class="rule-title">The "never two in a row" backlog law</div><ul class="rule-list"><li>Missing one deep work block = fine, make up next morning</li><li>Missing two consecutive days of any subject = start of spiral</li><li>Saturday buffer exists for this — use it, not Sunday</li><li>Sunday is for tests only — not catching up last week</li></ul></div>
+    <div class="rule-card"><div class="rule-num">05</div><div class="rule-title">Saturday is your shock absorber</div><ul class="rule-list"><li>Use morning for whichever subject fell behind — never to get ahead</li><li>Saturday backlog zero = Sunday test done with clean slate</li><li>If no backlog: RD Sharma unsolved sets or HCV challenge problems</li><li>Never fill Saturday with new content ahead of schedule</li></ul></div>
+    <div class="rule-card"><div class="rule-num">06</div><div class="rule-title">Test analysis beats test score</div><ul class="rule-list"><li>The Sunday mock score is meaningless without 2-hr analysis</li><li>Categorise every wrong answer: silly mistake / concept gap / never seen before</li><li>Only the "never seen" category justifies new study — others need process fixes</li><li>Errors repeated on two consecutive Sundays = that chapter needs a full redo</li></ul></div>
+    <div class="rule-card"><div class="rule-num">07</div><div class="rule-title">TPP is daily — no carryover</div><ul class="rule-list"><li>Complete the same day it is assigned — always</li><li>If a problem takes too long: attempt partially, mark it, review solution</li><li>Saturday evening: batch-review all week's TPP errors in one session</li><li>This weekly error review is worth more than doing twice the problems</li></ul></div>
+    <div class="rule-card"><div class="rule-num">08</div><div class="rule-title">Fatigue is structural, not motivational</div><ul class="rule-list"><li>By week 4, motivation drops for everyone — this is biology, not failure</li><li>Schedule is designed for week 7, not week 1. Don't front-load intensity.</li><li>On genuinely bad days: TPP only (30 min). One task beats zero.</li><li>Book reading before dinner is cognitive cooldown — not wasted time</li></ul></div>
+  </div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end layout -->
+
+<script>
+// ─── SCHEDULE DATA ──────────────────────────────────────────────────────────
+const SCHEDULES = {
+  tuition: [
+    {s:420,e:540,label:'School (online)',note:'Attend — no compromise',type:'school',badge:'',dur:'2 hrs'},
+    {s:540,e:555,label:'Reset + Breakfast',note:'Plan the day, no phone',type:'rest',badge:'',dur:'15 min'},
+    {s:555,e:675,label:'Physics — HCV',note:'Deep work · concepts + numericals. Guard this block.',type:'phy',badge:'deep',dur:'2 hrs'},
+    {s:675,e:690,label:'Break',note:'Walk, stretch — no screens',type:'rest',badge:'',dur:'15 min'},
+    {s:690,e:780,label:'Maths — RD Sharma',note:'Deep work · exercises from current chapter',type:'mat',badge:'deep',dur:'1.5 hrs'},
+    {s:780,e:900,label:'Lunch + Nap',note:'MANDATORY 2 hrs — non-negotiable',type:'rest',badge:'',dur:'2 hrs'},
+    {s:900,e:960,label:'Chemistry — NCERT',note:'Medium focus · theory + reactions + inorganic',type:'che',badge:'medium',dur:'1 hr'},
+    {s:960,e:1035,label:'PW Live',note:'Attend live · leave at 6:15 for travel',type:'pw',badge:'',dur:'1 hr 15 min'},
+    {s:1035,e:1050,label:'Travel to tuition',note:'Leave by 6:15 PM to reach on time',type:'rest',badge:'',dur:'15 min'},
+    {s:1050,e:1140,label:'Math Tuition (offline)',note:'Stay engaged — ask doubts',type:'mat',badge:'',dur:'1.5 hrs'},
+    {s:1140,e:1185,label:'PW Recorded (missed 45 min)',note:'Watch what was missed during tuition — same night rule',type:'pw',badge:'',dur:'45 min'},
+    {s:1185,e:1245,label:'TPP + Tuition Homework',note:'Clear today\'s practice problems and homework',type:'mat',badge:'light',dur:'1 hr'},
+    {s:1245,e:1260,label:'Book Reading',note:'Light fiction/biography — wind-down ritual',type:'rest',badge:'light',dur:'15 min'},
+    {s:1260,e:1260,label:'Dinner',note:'Fixed dinner time — 10:00 PM',type:'rest',badge:'',dur:''},
+  ],
+  free: [
+    {s:420,e:540,label:'School (online)',note:'Attend — no compromise',type:'school',badge:'',dur:'2 hrs'},
+    {s:540,e:555,label:'Reset + Breakfast',note:'Review yesterday\'s notes briefly',type:'rest',badge:'',dur:'15 min'},
+    {s:555,e:675,label:'Physics — HCV',note:'Deep work · go harder than tuition days, full energy',type:'phy',badge:'deep',dur:'2 hrs'},
+    {s:675,e:690,label:'Break',note:'Walk, stretch — no screens',type:'rest',badge:'',dur:'15 min'},
+    {s:690,e:780,label:'Chemistry',note:'Deep work · organic reactions or physical chemistry numericals',type:'che',badge:'deep',dur:'1.5 hrs'},
+    {s:780,e:900,label:'Lunch + Nap',note:'Full 2-hr rest — no guilt, fully earned',type:'rest',badge:'',dur:'2 hrs'},
+    {s:900,e:960,label:'Maths — RD Sharma',note:'Medium focus · continue current chapter set',type:'mat',badge:'medium',dur:'1 hr'},
+    {s:960,e:1200,label:'PW Live (full)',note:'All subjects — no interruptions — full 4 hours',type:'pw',badge:'',dur:'4 hrs'},
+    {s:1200,e:1275,label:'TPP + Theory Revision',note:'Complete today\'s TPP · revise PW notes from today',type:'mat',badge:'light',dur:'1 hr 15 min'},
+    {s:1275,e:1305,label:'Chemistry — Inorganic',note:'Light memorisation · coordination compounds, p-block',type:'che',badge:'light',dur:'30 min'},
+    {s:1305,e:1260,label:'Book Reading',note:'Wind-down — non-academic reading',type:'rest',badge:'light',dur:'15 min'},
+    {s:1260,e:1260,label:'Dinner',note:'Fixed dinner time — 10:00 PM',type:'rest',badge:'',dur:''},
+  ],
+  sat: [
+    {s:420,e:540,label:'School (online)',note:'Attend — no compromise',type:'school',badge:'',dur:'2 hrs'},
+    {s:540,e:555,label:'Setup — check week\'s pending',note:'Open notebook, list anything incomplete this week',type:'rest',badge:'',dur:'15 min'},
+    {s:555,e:675,label:'Maths — RD Sharma',note:'Deep work · harder problems or backlog catch-up',type:'mat',badge:'deep',dur:'2 hrs'},
+    {s:675,e:690,label:'Break',note:'Walk, no screens',type:'rest',badge:'',dur:'15 min'},
+    {s:690,e:780,label:'Chemistry — Inorganic / Organic',note:'Deep work · coordination compounds or organic revision',type:'che',badge:'deep',dur:'1.5 hrs'},
+    {s:780,e:900,label:'Lunch + Nap',note:'Full 2-hr rest',type:'rest',badge:'',dur:'2 hrs'},
+    {s:900,e:960,label:'Backlog Zero Hour',note:'Clear ALL pending: TPP, HW, recorded PW lectures',type:'rest',badge:'',dur:'1 hr'},
+    {s:960,e:1200,label:'PW Live (full)',note:'No tuition pressure — attend completely',type:'pw',badge:'',dur:'4 hrs'},
+    {s:1200,e:1260,label:'Week Review + TPP',note:'Scan the week\'s error log in notebook',type:'mat',badge:'light',dur:'1 hr'},
+    {s:1260,e:1305,label:'Next Week Planning',note:'Set 3 Physics + 2 Maths + 1 Chemistry targets in notebook',type:'rest',badge:'',dur:'45 min'},
+    {s:1305,e:1260,label:'Book Reading',note:'Wind-down',type:'rest',badge:'light',dur:'15 min'},
+    {s:1260,e:1260,label:'Dinner',note:'Fixed dinner time — 10:00 PM',type:'rest',badge:'',dur:''},
+  ],
+  sun: [
+    {s:420,e:540,label:'School (online)',note:'Attend',type:'school',badge:'',dur:'2 hrs'},
+    {s:540,e:600,label:'Pre-test Revision',note:'Scan notes only — no new studying',type:'mat',badge:'light',dur:'1 hr'},
+    {s:600,e:750,label:'Mock Test',note:'Timed · full exam conditions · no cheating yourself',type:'phy',badge:'deep',dur:'2.5 hrs'},
+    {s:750,e:780,label:'Break',note:'Step away from the test mentally',type:'rest',badge:'',dur:'30 min'},
+    {s:780,e:900,label:'Lunch + Nap',note:'Full 2-hr mandatory rest',type:'rest',badge:'',dur:'2 hrs'},
+    {s:900,e:1020,label:'Test Analysis',note:'Error log — categorise: silly mistake / concept gap / never seen',type:'mat',badge:'deep',dur:'2 hrs'},
+    {s:1020,e:1140,label:'Backlog Clearing',note:'Clear any pending TPP, HW, recorded PW from the week',type:'rest',badge:'',dur:'2 hrs'},
+    {s:1140,e:1260,label:'Weekly Planning + Unwind',note:'Notebook: targets for Mon–Sat. Then book reading. Protect sleep.',type:'rest',badge:'light',dur:'2 hrs'},
+    {s:1260,e:1260,label:'Dinner',note:'Fixed dinner time — 10:00 PM',type:'rest',badge:'',dur:''},
+  ]
+};
+
+const TYPE_COLORS = {
+  phy:{dot:'var(--phy)',bg:'var(--phybg)',accent:'var(--phy)',text:'var(--phy)'},
+  che:{dot:'var(--che)',bg:'var(--chebg)',accent:'var(--che)',text:'var(--che)'},
+  mat:{dot:'var(--mat)',bg:'var(--matbg)',accent:'var(--mat)',text:'var(--mat)'},
+  pw:{dot:'var(--pw)',bg:'var(--pwbg)',accent:'var(--pw)',text:'var(--pw)'},
+  school:{dot:'var(--school)',bg:'var(--bg3)',accent:'var(--school)',text:'var(--school)'},
+  rest:{dot:'var(--rest)',bg:'var(--bg2)',accent:'var(--border2)',text:'var(--text2)'},
+};
+
+function getDayType(d) {
+  const dow = d.getDay();
+  if(dow===0) return 'sun';
+  if(dow===6) return 'sat';
+  if(dow===1||dow===3||dow===5) return 'tuition';
+  return 'free';
+}
+
+function getMinutes(d){return d.getHours()*60+d.getMinutes();}
+
+function getCurrentBlock(schedule, mins) {
+  for(let i=0;i<schedule.length;i++){
+    const b=schedule[i];
+    const next=schedule[i+1];
+    if(mins>=b.s && (next?mins<next.s:true)) return {block:b,nextBlock:next||null,idx:i};
+  }
+  return {block:schedule[0],nextBlock:schedule[1],idx:0};
+}
+
+function formatTime(mins) {
+  const h=Math.floor(mins/60)%24;
+  const m=mins%60;
+  const ampm=h>=12?'PM':'AM';
+  const hh=h>12?h-12:(h===0?12:h);
+  return `${hh}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+const DAYS_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function updateClock() {
+  const now=new Date();
+  const h=String(now.getHours()).padStart(2,'0');
+  const m=String(now.getMinutes()).padStart(2,'0');
+  const s=String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock-h').textContent=h;
+  document.getElementById('clock-m').textContent=m;
+  document.getElementById('clock-s').textContent=s;
+  document.getElementById('clock-date').textContent=`${DAYS_FULL[now.getDay()]}, ${DAYS_FULL[now.getDay()].slice(0,3)} ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  
+  const dt=getDayType(now);
+  const dtLabels={tuition:'Tuition Day',free:'Free Day',sat:'Saturday',sun:'Sunday — Test Day'};
+  const dtColors={tuition:'var(--warn)',free:'var(--mat)',sat:'var(--phy)',sun:'var(--pw)'};
+  const badge=document.getElementById('day-badge-wrap');
+  badge.innerHTML=`<div class="day-badge" style="background:var(--bg4);border:1px solid var(--border2);color:${dtColors[dt]}">${dtLabels[dt]}</div>`;
+  
+  updateNowBlock(now);
+  updateMiniTimeline(now);
+}
+
+function updateNowBlock(now) {
+  const dt=getDayType(now);
+  const mins=getMinutes(now);
+  const sched=SCHEDULES[dt];
+  const {block,nextBlock}=getCurrentBlock(sched,mins);
+  const c=TYPE_COLORS[block.type]||TYPE_COLORS.rest;
+  
+  const card=document.getElementById('now-card');
+  card.style.background=c.bg;
+  card.style.border=`1px solid ${c.accent}`;
+  card.style.color=c.text;
+  
+  document.getElementById('now-label').textContent='▶ NOW';
+  document.getElementById('now-time-range').textContent=`${formatTime(block.s)} — ${formatTime(nextBlock?nextBlock.s:block.e||block.s+30)}`;
+  document.getElementById('now-subject').textContent=block.label;
+  document.getElementById('now-desc').style.color='var(--text2)';
+  document.getElementById('now-desc').textContent=block.note;
+  document.getElementById('now-next').textContent=nextBlock?`NEXT → ${nextBlock.label} at ${formatTime(nextBlock.s)}`:'';
+}
+
+function updateMiniTimeline(now) {
+  const dt=getDayType(now);
+  const mins=getMinutes(now);
+  const sched=SCHEDULES[dt];
+  const {idx}=getCurrentBlock(sched,mins);
+  const tl=document.getElementById('mini-timeline');
+  const title=document.getElementById('mini-tl-title');
+  title.textContent=`Today's Schedule (${DAYS_FULL[now.getDay()]})`;
+  tl.innerHTML='';
+  
+  sched.forEach((b,i)=>{
+    const isNow=i===idx;
+    const next=sched[i+1];
+    const c=TYPE_COLORS[b.type]||TYPE_COLORS.rest;
+    const row=document.createElement('div');
+    row.className='mt-row'+(isNow?' current':'');
+    row.innerHTML=`
+      <div class="mt-time">${formatTime(b.s)}${next?'–'+formatTime(next.s):''}</div>
+      <div class="mt-dot" style="background:${c.dot}"></div>
+      <div class="mt-name" style="${isNow?'color:'+c.text+';font-weight:500':''}">${b.label}</div>
+      <div class="mt-note">${b.note.split('·')[0].trim()}</div>
+      ${isNow?'<div class="mt-now-badge">NOW</div>':''}
+    `;
+    tl.appendChild(row);
+  });
+
+  document.getElementById('dash-date-sub').textContent=`${DAYS_FULL[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()} · ${getDayType(now)==='tuition'?'Tuition Day':getDayType(now)==='free'?'Free Day':getDayType(now)==='sat'?'Saturday — Buffer Day':'Sunday — Test Day'}`;
+}
+
+// ─── SCHEDULE PAGE ───────────────────────────────────────────────────────────
+let currentDayTab=null;
+
+function showDaySchedule(type) {
+  document.querySelectorAll('.day-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+type).classList.add('active');
+  currentDayTab=type;
+  const sched=SCHEDULES[type];
+  const now=new Date();
+  const mins=getMinutes(now);
+  const todayType=getDayType(now);
+  const isToday=todayType===type;
+  const {idx}=isToday?getCurrentBlock(sched,mins):{idx:-1};
+  const tl=document.getElementById('schedule-timeline');
+  tl.innerHTML='';
+  
+  sched.forEach((b,i)=>{
+    const next=sched[i+1];
+    const c=TYPE_COLORS[b.type]||TYPE_COLORS.rest;
+    const isNow=isToday&&i===idx;
+    const row=document.createElement('div');
+    row.className='tl-block'+(isNow?' tl-current':'');
+    const badgeHtml=b.badge?`<span class="tl-badge ${b.badge}">${b.badge==='deep'?'Deep Work':b.badge==='medium'?'Medium':b.badge==='light'?'Light':b.badge}</span>`:'';
+    const nowBadge=isNow?'<span class="tl-badge now-b">NOW</span>':'';
+    row.innerHTML=`
+      <div class="tl-time-col ${isNow?'current-time-col':''}">
+        <div>${formatTime(b.s)}</div>
+        ${next?`<div style="color:var(--text3);font-size:9px;margin-top:2px">→ ${formatTime(next.s)}</div>`:''}
+      </div>
+      <div class="tl-accent" style="background:${c.dot}"></div>
+      <div class="tl-body">
+        <div class="tl-name">${nowBadge}${b.label}${badgeHtml}</div>
+        <div class="tl-desc">${b.note}</div>
+        ${b.dur?`<div class="tl-duration">${b.dur}</div>`:''}
+      </div>
+    `;
+    tl.appendChild(row);
+  });
+}
+
+function initSchedulePage() {
+  const now=new Date();
+  const dt=getDayType(now);
+  // mark today tab
+  const tabMap={tuition:'tuition',free:'free',sat:'sat',sun:'sun'};
+  const todayTab=document.getElementById('today-m-'+dt);
+  if(todayTab) todayTab.style.display='inline';
+  showDaySchedule(dt);
+}
+
+// ─── WEEKLY PAGE ─────────────────────────────────────────────────────────────
+const WEEKLY_DATA=[
+  {day:'Sun',role:'Test + Reset',blocks:[{label:'Mock Test',type:'phy'},{label:'Test Analysis',type:'mat'},{label:'Backlog Clear',type:'rest'},{label:'Weekly Plan',type:'rest'}]},
+  {day:'Mon',role:'Tuition Day',blocks:[{label:'Physics HCV',type:'phy'},{label:'Maths RD Sharma',type:'mat'},{label:'Chemistry NCERT',type:'che'},{label:'PW Live + Tuition',type:'pw'}]},
+  {day:'Tue',role:'Free Day',blocks:[{label:'Physics HCV',type:'phy'},{label:'Chemistry',type:'che'},{label:'Maths RD Sharma',type:'mat'},{label:'PW Live (4 hrs)',type:'pw'}]},
+  {day:'Wed',role:'Tuition Day',blocks:[{label:'Physics HCV',type:'phy'},{label:'Maths RD Sharma',type:'mat'},{label:'Chemistry',type:'che'},{label:'PW Live + Tuition',type:'pw'}]},
+  {day:'Thu',role:'Free Day',blocks:[{label:'Physics HCV',type:'phy'},{label:'Chemistry',type:'che'},{label:'Maths RD Sharma',type:'mat'},{label:'PW Live (4 hrs)',type:'pw'}]},
+  {day:'Fri',role:'Tuition Day',blocks:[{label:'Physics HCV',type:'phy'},{label:'Maths RD Sharma',type:'mat'},{label:'Chemistry',type:'che'},{label:'PW Live + Tuition',type:'pw'}]},
+  {day:'Sat',role:'Buffer Day',blocks:[{label:'Maths RD Sharma',type:'mat'},{label:'Chemistry',type:'che'},{label:'Backlog Zero',type:'rest'},{label:'PW Live (4 hrs)',type:'pw'}]},
+];
+
+function initWeeklyPage() {
+  const now=new Date();
+  const todayDow=now.getDay();
+  const grid=document.getElementById('weekly-grid');
+  grid.innerHTML='';
+  WEEKLY_DATA.forEach((d,i)=>{
+    const isToday=i===todayDow;
+    const card=document.createElement('div');
+    card.className='wday-card'+(isToday?' today-wday':'');
+    const blocksHtml=d.blocks.map(b=>{
+      const c=TYPE_COLORS[b.type]||TYPE_COLORS.rest;
+      return `<div class="wday-block" style="background:${c.bg};color:${c.text};border:1px solid ${c.dot}22">${b.label}</div>`;
+    }).join('');
+    card.innerHTML=`
+      <div class="wday-header" style="${isToday?'color:var(--gold)':''}">
+        <span>${d.day}</span>
+        ${isToday?'<div class="wday-today-dot"></div>':''}
+      </div>
+      <div class="wday-body">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px">${d.role}</div>
+        ${blocksHtml}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ─── TOPICS PAGE ─────────────────────────────────────────────────────────────
+const TOPICS = {
+  phy: {
+    label:'Physics — HCV (Class 12)',color:'var(--phy)',bg:'var(--phybg)',icon:'⚡',
+    topics:[
+      {id:'p1',name:'Electric Charges, Fields and Flux (Ch 17–18)',tag:'must'},
+      {id:'p2',name:'Electric Potential and Capacitors (Ch 19–20)',tag:'must'},
+      {id:'p3',name:'Current Electricity — Kirchhoff, Wheatstone (Ch 21)',tag:'must'},
+      {id:'p4',name:'Moving Charges and Magnetic Force (Ch 22)',tag:'must'},
+      {id:'p5',name:'Magnetism and Matter (Ch 23–24)',tag:'strong'},
+      {id:'p6',name:'Electromagnetic Induction — Faraday, Lenz (Ch 25)',tag:'must'},
+      {id:'p7',name:'Alternating Currents — LCR, resonance (Ch 26)',tag:'strong'},
+      {id:'p8',name:'Electromagnetic Waves (Ch 27)',tag:'strong'},
+      {id:'p9',name:'Ray Optics — mirrors, refraction, lenses (Ch 30)',tag:'must'},
+      {id:'p10',name:'Wave Optics — interference, diffraction, polarisation (Ch 31)',tag:'must'},
+      {id:'p11',name:'Dual Nature of Matter and Radiation (Ch 34)',tag:'must'},
+      {id:'p12',name:'Atoms — Bohr model, spectra (Ch 35)',tag:'must'},
+      {id:'p13',name:'Nuclei — radioactivity, binding energy (Ch 36)',tag:'must'},
+      {id:'p14',name:'Semiconductors — basics for board (Ch 38)',tag:'bonus'},
+    ]
+  },
+  che: {
+    label:'Chemistry — NCERT (Class 12)',color:'var(--che)',bg:'var(--chebg)',icon:'🧪',
+    topics:[
+      {id:'c1',name:'Solutions — colligative properties, van\'t Hoff',tag:'strong'},
+      {id:'c2',name:'Electrochemistry — Nernst, EMF, electrolysis',tag:'must'},
+      {id:'c3',name:'Chemical Kinetics — order, rate laws, Arrhenius',tag:'must'},
+      {id:'c4',name:'Surface Chemistry — adsorption, colloids',tag:'bonus'},
+      {id:'c5',name:'d and f Block — properties, colours, ox. states',tag:'strong'},
+      {id:'c6',name:'Coordination Compounds — IUPAC, VBT, CFT (highest JEE weight in inorganic)',tag:'must'},
+      {id:'c7',name:'p-Block Elements: Group 15, 16, 17, 18',tag:'strong'},
+      {id:'c8',name:'Haloalkanes and Haloarenes — SN1/SN2, elimination',tag:'must'},
+      {id:'c9',name:'Alcohols, Phenols and Ethers',tag:'strong'},
+      {id:'c10',name:'Aldehydes, Ketones, Carboxylic Acids — named reactions',tag:'must'},
+      {id:'c11',name:'Amines — basicity, reactions, diazonium salts',tag:'must'},
+      {id:'c12',name:'Biomolecules — glucose, amino acids, DNA/RNA',tag:'strong'},
+      {id:'c13',name:'Polymers — types, addition, condensation',tag:'bonus'},
+      {id:'c14',name:'Chemistry in Everyday Life',tag:'bonus'},
+    ]
+  },
+  mat: {
+    label:'Maths — RD Sharma (Class 12)',color:'var(--mat)',bg:'var(--matbg)',icon:'∑',
+    topics:[
+      {id:'m1',name:'Relations and Functions — types, inverse functions',tag:'strong'},
+      {id:'m2',name:'Inverse Trigonometry — identities, range, equations',tag:'strong'},
+      {id:'m3',name:'Matrices — types, operations, transpose',tag:'must'},
+      {id:'m4',name:'Determinants — properties, solving systems, Cramer\'s rule',tag:'must'},
+      {id:'m5',name:'Continuity and Differentiability — chain rule, implicit, log',tag:'must'},
+      {id:'m6',name:'Application of Derivatives — maxima/minima, tangent, rate of change',tag:'must'},
+      {id:'m7',name:'Integrals — all standard forms, by parts, partial fractions',tag:'must'},
+      {id:'m8',name:'Application of Integrals — area between curves',tag:'must'},
+      {id:'m9',name:'Differential Equations — variable separable, homogeneous, linear',tag:'strong'},
+      {id:'m10',name:'Vectors — dot/cross product, angle, collinearity',tag:'must'},
+      {id:'m11',name:'3D Geometry — direction cosines, planes, lines, skew lines',tag:'must'},
+      {id:'m12',name:'Probability — Bayes theorem, conditional, distributions',tag:'must'},
+      {id:'m13',name:'Linear Programming',tag:'bonus'},
+    ]
+  }
+};
+
+function loadTopicStates(){try{return JSON.parse(localStorage.getItem('sv_topics')||'{}')}catch(e){return{}}}
+function saveTopicStates(state){try{localStorage.setItem('sv_topics',JSON.stringify(state))}catch(e){}}
+
+function initTopicsPage() {
+  const state=loadTopicStates();
+  const container=document.getElementById('topics-content');
+  container.innerHTML='';
+  
+  Object.entries(TOPICS).forEach(([key,subj])=>{
+    const done=subj.topics.filter(t=>state[t.id]).length;
+    const total=subj.topics.length;
+    const pct=Math.round(done/total*100);
+    
+    const sec=document.createElement('div');
+    sec.className='subject-section';
+    sec.innerHTML=`
+      <div class="subject-header">
+        <div class="subject-icon" style="background:${subj.bg};color:${subj.color};font-size:16px">${subj.icon}</div>
+        <div class="subject-title" style="color:${subj.color}">${subj.label}</div>
+        <div class="subject-count" id="count-${key}">${done}/${total}</div>
+        <div class="subject-progress-bar"><div class="subject-progress-fill" style="width:${pct}%;background:${subj.color}" id="bar-${key}"></div></div>
+      </div>
+      <div class="topics-grid" id="grid-${key}"></div>
+    `;
+    container.appendChild(sec);
+    
+    const grid=document.getElementById('grid-'+key);
+    subj.topics.forEach(t=>{
+      const isDone=!!state[t.id];
+      const card=document.createElement('div');
+      card.className='topic-card'+(isDone?' done':'');
+      card.id='tc-'+t.id;
+      const tagClass=t.tag==='must'?'tag-must':t.tag==='strong'?'tag-strong':'tag-bonus';
+      const tagLabel=t.tag==='must'?'Must Cover':t.tag==='strong'?'Gives Edge':'Bonus';
+      card.innerHTML=`
+        <div class="tc-check ${isDone?'checked':''}" id="chk-${t.id}"></div>
+        <div class="tc-body">
+          <div class="tc-name">${t.name}</div>
+          <span class="tc-tag ${tagClass}">${tagLabel}</span>
+        </div>
+      `;
+      card.addEventListener('click',()=>toggleTopic(t.id,key,subj));
+      grid.appendChild(card);
+    });
+  });
+}
+
+function toggleTopic(id, key, subj) {
+  const state=loadTopicStates();
+  state[id]=!state[id];
+  saveTopicStates(state);
+  
+  const card=document.getElementById('tc-'+id);
+  const chk=document.getElementById('chk-'+id);
+  if(state[id]){card.classList.add('done');chk.classList.add('checked');}
+  else{card.classList.remove('done');chk.classList.remove('checked');}
+  
+  const done=subj.topics.filter(t=>state[t.id]).length;
+  const total=subj.topics.length;
+  const pct=Math.round(done/total*100);
+  document.getElementById('count-'+key).textContent=`${done}/${total}`;
+  document.getElementById('bar-'+key).style.width=pct+'%';
+}
+
+// ─── STATS DASH ──────────────────────────────────────────────────────────────
+function updateDashStats() {
+  const now=new Date();
+  const vacation_start=new Date(2026,3,27);
+  const vacation_end=new Date(2026,5,17);
+  const elapsed=Math.max(0,Math.floor((now-vacation_start)/(1000*60*60*24)));
+  const total=52;
+  const remaining=Math.max(0,total-elapsed);
+  const state=loadTopicStates();
+  const allTopics=Object.values(TOPICS).flatMap(s=>s.topics);
+  const doneCount=allTopics.filter(t=>state[t.id]).length;
+  
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="card-sm"><div class="card-title">Day</div><div class="stat-num">${Math.min(elapsed+1,52)}</div><div class="stat-unit">of 52</div><div class="stat-detail">${remaining} days remaining</div></div>
+    <div class="card-sm"><div class="card-title">Topics Done</div><div class="stat-num">${doneCount}</div><div class="stat-unit">of ${allTopics.length} chapters</div><div class="stat-detail">${Math.round(doneCount/allTopics.length*100)}% coverage</div></div>
+    <div class="card-sm"><div class="card-title">Self-Study Hours</div><div class="stat-num">~${Math.min(elapsed,52)*5}</div><div class="stat-unit">approx. completed</div><div class="stat-detail">Target: 287 hrs total</div></div>
+    <div class="card-sm"><div class="card-title">Vacation End</div><div class="stat-num">Jun 17</div><div class="stat-unit">2026</div><div class="stat-detail">${remaining} days of focus left</div></div>
+  `;
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  
+  if(id==='schedule') initSchedulePage();
+  if(id==='weekly') initWeeklyPage();
+  if(id==='topics') initTopicsPage();
+}
+
+function toggleSidebar() {
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+  document.getElementById('collapse-icon').textContent=sb.classList.contains('collapsed')?'▷':'◁';
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+updateClock();
+updateDashStats();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>
+HTMLEOF
+echo "File created: $(wc -l < /home/claude/study_planner.html) lines"
